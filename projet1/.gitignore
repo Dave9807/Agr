@@ -1,0 +1,25 @@
+# Environnement virtuel
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Environnement (secrets : jamais dans Git)
+.env
+
+# Bases de données locales
+*.db
+*.sqlite3
+
+# Journaux (uvicorn, tests serveur…)
+*.log
+
+# Éditeur / OS
+.vscode/
+.idea/
+.DS_Store

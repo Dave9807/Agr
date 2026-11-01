@@ -1,0 +1,28 @@
+# Blueprint Render (free tier) — 3DPay API
+# Docs : https://render.com/docs/blueprint-spec
+#
+# La base PostgreSQL est fournie par Neon (gratuit) : renseigner DATABASE_URL
+# dans les variables d'environnement Render, jamais dans ce fichier.
+services:
+  - type: web
+    name: 3dpay-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r projet1/requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    rootDir: projet1
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: WEBHOOK_BLOCK_PRIVATE
+        value: "true"
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      # Secrets à définir dans le tableau de bord Render (sync: false) :
+      - key: DATABASE_URL
+        sync: false
+      - key: WEBHOOK_SECRET
+        sync: false

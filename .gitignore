@@ -1,0 +1,9 @@
+# Copie locale déplacée (redondante avec projet1/) — ne jamais committer
+Agr-gateur-de-payement/
+
+# Environnements virtuels racine
+.venv/
+venv/
+
+# Etat local des outils
+.freebuff/

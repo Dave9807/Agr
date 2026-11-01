@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ruff-et-pytest:
+    name: Ruff + pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projet1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: projet1/requirements.txt
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Lint (Ruff)
+        run: ruff check app tests
+
+      - name: Tests (pytest)
+        env:
+          APP_ENV: test
+          DATABASE_URL: sqlite:///:memory:
+          WEBHOOK_SECRET: secret-de-ci
+          WEBHOOK_BLOCK_PRIVATE: "false"
+        run: pytest -q
