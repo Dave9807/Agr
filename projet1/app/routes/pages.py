@@ -1,8 +1,12 @@
 """Pages HTML de démonstration (aucune dépendance externe).
 
 - `/`                     : accueil et liens utiles ;
+- `/demo/inscription`     : création de compte marchand et récupération de la clé ;
+- `/demo/connexion`       : ouverture d'une session marchand ;
+- `/demo/espace`          : activité et réglages du compte connecté ;
 - `/demo/boutique`        : boutique fictive qui crée une demande de paiement ;
 - `/demo/widget`          : widget simulé (confirmation / refus du client) ;
+- résultat du paiement    : état final ou en attente après décision ;
 - `/demo/numeros-de-test` : tableau public des numéros de test.
 
 Le parcours reproduit celui d'un vrai agrégateur : la boutique (serveur
@@ -24,6 +28,7 @@ router = APIRouter(tags=["Pages de démonstration"])
 _STYLE = """
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   margin: 0; padding: 0 1rem 3rem;
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -201,34 +206,84 @@ code { color: var(--green-dark); background: #edf5ed; }
 pre { color: #e7f0e9; background: #14251f; border: 0; }
 th { color: #697970; }
 td { border-bottom-color: var(--line); }
-.hero { text-align: left; padding: clamp(1.5rem, 5vw, 4rem) 0 2.75rem; }
+.hero { text-align: left; padding: 0; }
 .hero h1 {
-  max-width: 760px; font-size: clamp(2.4rem, 6vw, 4.65rem);
-  line-height: 1.03; letter-spacing: -.065em;
+  max-width: 620px; margin: .7rem 0 1rem;
+  font-size: clamp(2.25rem, 4.5vw, 3.55rem);
+  line-height: 1.08; letter-spacing: -.055em;
 }
 .hero h1 .grad {
   background: none; color: var(--green);
   -webkit-text-fill-color: currentColor;
 }
-.hero p { max-width: 620px; margin: 0 0 1.6rem; font-size: 1.08rem; }
-.hero .pill { margin-bottom: .85rem; }
+.hero p { max-width: 560px; margin: 0 0 1.4rem; font-size: 1rem; }
+.hero .pill { margin-bottom: .4rem; }
 .pill.warn { color: #73540a; background: #fff6d8; border-color: #f0df9e; }
 .hero-actions { justify-content: flex-start; }
-.features { gap: .9rem; margin-bottom: 1.25rem; }
-.feature { padding: 1.25rem; }
-.feature .icon {
-  display: grid; width: 42px; height: 42px; place-items: center;
-  border-radius: 13px; background: #edf5e6;
+.hero-actions .btn { padding-inline: 1.1rem; }
+.home-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .75fr);
+  align-items: center; gap: clamp(2rem, 6vw, 5rem);
+  min-height: 450px; padding: 1rem 0 2.5rem;
 }
-.feature h3 { letter-spacing: -.02em; }
-.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; padding: 0; list-style: none; counter-reset: steps; }
+.home-preview {
+  padding: 1.25rem; border: 1px solid #dfe7df; border-radius: 14px;
+  background: #fff; box-shadow: 0 20px 55px rgba(20,37,31,.09);
+}
+.home-preview-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: .75rem; padding-bottom: .85rem; border-bottom: 1px solid var(--line);
+  color: var(--muted); font-size: .74rem;
+}
+.home-preview-brand { display: flex; align-items: center; gap: .55rem; color: var(--ink); font-weight: 750; }
+.home-preview-mark {
+  display: grid; place-items: center; width: 30px; height: 30px;
+  border-radius: 7px; color: var(--ink); background: var(--lime); font-size: .72rem;
+}
+.home-preview-total { padding: 1.15rem 0 .85rem; }
+.home-preview-total small { display: block; color: var(--muted); font-size: .74rem; }
+.home-preview-total strong { display: block; margin-top: .18rem; font-size: 1.9rem; letter-spacing: -.045em; }
+.home-preview-method {
+  display: flex; align-items: center; gap: .65rem; margin-top: .45rem;
+  padding: .65rem .7rem; border: 1px solid var(--line); border-radius: 8px;
+  color: #344a3f; font-size: .82rem;
+}
+.home-preview-method.selected { border-color: #86b69b; background: #f2f8f2; }
+.home-preview-radio { width: 14px; height: 14px; border: 1px solid #9cad9f; border-radius: 50%; }
+.selected .home-preview-radio { border: 4px solid var(--green); }
+.home-preview-submit {
+  margin-top: .75rem; padding: .7rem; border-radius: 8px;
+  color: white; background: var(--green); text-align: center;
+  font-size: .82rem; font-weight: 700;
+}
+.home-preview-foot {
+  display: flex; justify-content: space-between; gap: .75rem;
+  margin-top: .75rem; color: var(--muted); font-size: .69rem;
+}
+.home-network-line {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
+  margin-top: 1.75rem; color: var(--muted); font-size: .76rem;
+}
+.home-network-line strong { margin-right: .25rem; color: #31443a; font-weight: 700; }
+.network-name { padding: .25rem .5rem; border: 1px solid var(--line); border-radius: 5px; background: rgba(255,255,255,.55); }
+.flow-section { padding: 1.1rem 0 1.5rem; border-top: 1px solid var(--line); }
+.flow-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: .5rem; }
+.flow-heading h2 { margin: 0; font-size: 1rem; }
+.flow-heading a { font-size: .82rem; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; padding: 0; list-style: none; counter-reset: steps; }
 .steps li {
-  counter-increment: steps; padding: 1rem; border: 1px solid var(--line);
-  border-radius: 14px; background: #fbfcfa; font-size: .92rem;
+  position: relative; min-height: 78px; counter-increment: steps;
+  padding: .65rem .9rem .65rem 0; color: #334940; font-size: .84rem;
 }
 .steps li::before {
-  content: "0" counter(steps); display: block; margin-bottom: .7rem;
-  color: var(--green); font-size: .75rem; font-weight: 800; letter-spacing: .08em;
+  content: "0" counter(steps); position: relative; z-index: 1;
+  display: grid; width: 25px; height: 25px; place-items: center;
+  margin: 0 0 .5rem; border: 1px solid #cddbd0; border-radius: 50%;
+  color: var(--green); background: #f6f8f5; font-size: .68rem; font-weight: 800;
+}
+.steps li:not(:last-child)::after {
+  content: ""; position: absolute; top: .9rem; left: 2rem; right: .6rem;
+  height: 1px; background: #dce5de;
 }
 .eyebrow {
   display: inline-flex; align-items: center; gap: .5rem; margin-bottom: .75rem;
@@ -238,6 +293,94 @@ td { border-bottom-color: var(--line); }
 .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--lime); }
 .page-intro { max-width: 680px; margin: 0 auto 1.5rem; text-align: center; }
 .page-intro p { color: var(--muted); }
+.journey {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem;
+  margin: 0 auto 1.5rem; max-width: 920px;
+}
+.journey-step {
+  display: flex; align-items: center; gap: .55rem; min-width: 0;
+  padding: .65rem .75rem; color: #84928a; font-size: .78rem;
+  border-bottom: 2px solid #dfe7df;
+}
+.journey-step .step-number {
+  display: grid; flex: 0 0 26px; width: 26px; height: 26px;
+  place-items: center; border-radius: 50%; background: #e9eee9;
+  color: #68786e; font-size: .72rem; font-weight: 800;
+}
+.journey-step.active { color: var(--green-dark); border-bottom-color: var(--green); font-weight: 750; }
+.journey-step.active .step-number { color: #fff; background: var(--green); }
+.journey-step.complete { color: var(--green); border-bottom-color: #b7d9c2; }
+.journey-step.complete .step-number { color: var(--green-dark); background: #e2f1e4; }
+.register-layout, .auth-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, .7fr); gap: 1.25rem; align-items: start; }
+.auth-layout { max-width: 900px; margin: 0 auto; }
+.auth-aside { padding: 1.5rem; border: 1px solid var(--line); border-radius: 18px; background: #eef4ed; }
+.auth-aside h2 { font-size: 1.1rem; }
+.auth-switch { padding-top: .9rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .87rem; }
+.auth-switch a { font-weight: 700; }
+.workspace { max-width: 1080px; margin: 0 auto; }
+.workspace-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.workspace-heading h1 { margin-bottom: .2rem; }
+.workspace-heading p { color: var(--muted); }
+.workspace-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.workspace-actions .btn { padding: .65rem 1rem; }
+.workspace-actions .btn.secondary { color: var(--green-dark); background: #f1f5ef; border-color: var(--line); }
+.workspace-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+.summary-item { min-width: 0; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.summary-item small, .summary-item strong { display: block; }
+.summary-item small { color: var(--muted); font-size: .78rem; }
+.summary-item strong { margin-top: .25rem; font-size: 1.25rem; }
+.summary-item .key-value { overflow-wrap: anywhere; font-size: .78rem; }
+.workspace-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, .75fr); gap: 1rem; align-items: start; }
+.workspace-grid .card { box-shadow: none; }
+.workspace-table { min-width: 520px; }
+.workspace-table td { color: var(--ink); }
+.workspace-list-item { display: flex; justify-content: space-between; gap: .75rem; padding: .7rem 0; border-bottom: 1px solid var(--line); font-size: .84rem; }
+.workspace-list-item:last-child { border-bottom: 0; }
+.workspace-list-item span:last-child { color: var(--muted); text-align: right; }
+.workspace-empty, .workspace-error, .workspace-notice { color: var(--muted); font-size: .88rem; }
+.workspace-error { margin-bottom: .8rem; color: #a63d44; font-weight: 650; }
+.workspace-notice:empty { display: none; }
+.nav-button { width: auto; padding: .35rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--green-dark); background: #f1f5ef; box-shadow: none; font-size: .85rem; }
+.nav-button:hover { transform: none; box-shadow: none; background: #e8f0e7; }
+.nav-feedback { flex-basis: 100%; color: #a63d44; font-size: .8rem; }
+.workspace[hidden] { display: none; }
+.register-aside { padding: 1.5rem; border-radius: 20px; color: #eaf5ee; background: #14251f; }
+.register-aside h2 { color: #fff; }
+.register-aside p { color: #b8c9bf; }
+.register-aside .check-list { padding-left: 1.2rem; color: #d7e5dc; }
+.register-aside .check-list li { margin: .55rem 0; }
+.key-result {
+  margin-top: 1rem; padding: 1.1rem; border: 1px solid #d8e7d9;
+  border-radius: 14px; background: #f3f8f1;
+}
+.key-result code { display: block; margin: .65rem 0; padding: .8rem; overflow-wrap: anywhere; }
+.key-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: .75rem; }
+.key-actions button, .key-actions .btn { flex: 1; min-width: 170px; }
+.result-panel { margin-top: 1.25rem; padding: 1.25rem; border-radius: 16px; background: #f3f8f1; }
+.result-panel h2 { margin-top: .5rem; }
+.result-panel[data-state="bad"] { background: #fff4f2; }
+.result-panel[data-state="waiting"] { background: #fff8e8; }
+.result-symbol {
+  display: grid; width: 44px; height: 44px; place-items: center;
+  margin-bottom: .75rem; border: 1px solid #c6ead6; border-radius: 50%;
+  color: var(--green); background: #e8f6ef; font-size: 1.2rem; font-weight: 750;
+}
+.result-panel[data-state="bad"] .result-symbol { color: #a63d44; background: #fff0ef; border-color: #f3d0ce; }
+.result-panel[data-state="waiting"] .result-symbol { color: #82610a; background: #fff6d8; border-color: #f0df9e; }
+.api-details { margin-top: 1rem; color: var(--muted); font-size: .83rem; }
+.api-details summary { cursor: pointer; color: var(--green-dark); font-weight: 650; }
+.result-symbol {
+  display: grid; width: 44px; height: 44px; place-items: center;
+  border: 1px solid #c6ead6; border-radius: 50%; color: var(--green);
+  background: #e8f6ef; font-size: 1.2rem; font-weight: 750;
+}
+.result-panel[data-state="bad"] .result-symbol { color: #a63d44; background: #fff0ef; border-color: #f3d0ce; }
+.result-panel[data-state="waiting"] .result-symbol { color: #82610a; background: #fff6d8; border-color: #f0df9e; }
+.api-details { margin-top: 1rem; color: var(--muted); font-size: .83rem; }
+.api-details summary { cursor: pointer; color: var(--green-dark); font-weight: 650; }
+.result-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+.result-actions .btn { min-width: 190px; }
+.result-actions[hidden], .key-result[hidden] { display: none; }
 .shop-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(240px, .65fr); gap: 1.25rem; align-items: start; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
 .field-full { grid-column: 1 / -1; }
@@ -279,7 +422,11 @@ footer {
   header { position: static; align-items: flex-start; }
   nav { width: 100%; margin-left: 0; }
   nav a { padding-inline: .55rem; font-size: .82rem; }
-  .shop-layout { grid-template-columns: 1fr; }
+  .shop-layout, .register-layout, .auth-layout { grid-template-columns: 1fr; }
+  .workspace-grid { grid-template-columns: 1fr; }
+  .workspace-heading { align-items: flex-start; flex-direction: column; }
+  .home-grid { grid-template-columns: 1fr; gap: 1.5rem; min-height: 0; padding: 1rem 0 2rem; }
+  .home-preview { max-width: 520px; }
   .steps { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 480px) {
@@ -289,6 +436,11 @@ footer {
   .hero { padding-top: 1.5rem; }
   .hero h1 { font-size: 2.55rem; }
   .field-grid, .steps, .decision-actions { grid-template-columns: 1fr; }
+  .workspace-summary { grid-template-columns: 1fr; }
+  .steps li { min-height: 0; }
+  .steps li:not(:last-child)::after { top: 1.2rem; bottom: -.2rem; left: 12px; right: auto; width: 1px; height: auto; }
+  .journey { gap: .2rem; }
+  .journey-step { flex-direction: column; align-items: flex-start; gap: .3rem; padding: .5rem .3rem; font-size: .67rem; }
   .field-full { grid-column: auto; }
   .row button, .hero-actions .btn { width: 100%; }
   .meta { align-items: flex-start; }
@@ -309,13 +461,88 @@ _SHELL = """<!doctype html>
     <span class="brand"><span class="logo">3D</span> 3Dpay</span><span class="badge">SIMULATION</span>
     <nav>
       <a href="/">Accueil</a>
+      <a data-auth="guest" href="/demo/inscription">Créer un compte</a>
+      <a data-auth="guest" href="/demo/connexion">Se connecter</a>
+      <a data-auth="signed-in" href="/demo/espace" hidden>Espace marchand</a>
+      <button data-auth="signed-in" data-action="logout" type="button" class="nav-button" hidden>Se déconnecter</button>
       <a href="/demo/boutique">Boutique</a>
       <a href="/demo/numeros-de-test">Numéros de test</a>
       <a href="/docs">API</a>
+      <span id="auth-feedback" class="nav-feedback" role="status" aria-live="polite" hidden></span>
     </nav>
   </header>
   <main>__CONTENT__</main>
   <footer>Plateforme de paiement mobile money <strong>simulée</strong> — aucun argent réel, aucune donnée bancaire.</footer>
+  <script>
+  (() => {
+    const guestItems = document.querySelectorAll('[data-auth="guest"]');
+    const signedInItems = document.querySelectorAll('[data-auth="signed-in"]');
+    const feedback = document.getElementById('auth-feedback');
+    const token = sessionStorage.getItem('3dp_session');
+
+    function setAuthenticated(authenticated) {
+      guestItems.forEach((item) => { item.hidden = authenticated; });
+      signedInItems.forEach((item) => { item.hidden = !authenticated; });
+    }
+
+    function showFeedback(message) {
+      feedback.textContent = message;
+      feedback.hidden = false;
+    }
+
+    window.addEventListener('3dp-session-ended', () => setAuthenticated(false));
+    setAuthenticated(Boolean(token));
+    if (token) {
+      fetch('/api/v1/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then((response) => {
+        if (response.status === 401) {
+          sessionStorage.removeItem('3dp_session');
+          setAuthenticated(false);
+          window.dispatchEvent(new Event('3dp-session-ended'));
+          return;
+        }
+        if (!response.ok) {
+          showFeedback('Vérification de la session impossible (' + response.status + ').');
+          return;
+        }
+        if (['/demo/connexion', '/demo/inscription'].includes(window.location.pathname)) {
+          window.location.replace('/demo/espace');
+        }
+      }).catch(() => {
+        showFeedback('Impossible de vérifier la session. Vérifiez votre connexion.');
+      });
+    }
+
+    document.querySelectorAll('[data-action="logout"]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          const response = await fetch('/api/v1/auth/logout', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            if (response.status === 401) {
+              sessionStorage.removeItem('3dp_session');
+              setAuthenticated(false);
+              showFeedback('Votre session a expiré. Vous pouvez vous reconnecter.');
+              window.location.assign('/');
+              return;
+            }
+            throw new Error(typeof data.detail === 'string' ? data.detail : 'Le serveur a refusé la déconnexion.');
+          }
+          sessionStorage.removeItem('3dp_session');
+          window.location.assign('/');
+        } catch (error) {
+          showFeedback('Déconnexion impossible : ' + error.message + '. Réessayez.');
+          button.disabled = false;
+        }
+      });
+    });
+  })();
+  </script>
 </body>
 </html>"""
 
@@ -330,54 +557,396 @@ def _render(title: str, content: str) -> HTMLResponse:
 
 
 _INDEX = """
+<section class="home-grid">
 <div class="hero">
-  <span class="eyebrow">Paiements mobiles · Bénin</span><br>
-  <span class="pill warn">⚠ Plateforme de démonstration</span>
-  <h1>Le paiement Mobile Money, <span class="grad">sans le risque.</span></h1>
-  <p>3Dpay reproduit le cycle complet d'un agrégateur de paiement : inscription,
-  clés API, demande de paiement, confirmation du client, webhook signé et tableau
-  de bord — avec de l'argent fictif.</p>
+  <span class="eyebrow">3DPAY</span>
+  <h1>Votre intégration Mobile Money, testée de bout en bout.</h1>
+  <p>Créez un compte marchand, envoyez une demande de paiement et suivez le résultat.
+  Les opérateurs et numéros proposés sont réservés aux essais.</p>
   <div class="hero-actions">
-    <a class="btn" href="/demo/boutique">Essayer la démonstration →</a>
-    <a class="btn secondary" href="/demo/numeros-de-test">Explorer les scénarios</a>
+    <a class="btn" data-auth="guest" href="/demo/inscription">Créer un compte</a>
+    <a class="btn secondary" data-auth="guest" href="/demo/connexion">Se connecter</a>
+    <a class="btn" data-auth="signed-in" href="/demo/espace" hidden>Ouvrir mon espace</a>
+  </div>
+  <div class="home-network-line">
+    <strong>Réseaux disponibles</strong>
+    <span class="network-name">MTN Mobile Money</span>
+    <span class="network-name">Moov Money</span>
+    <span class="network-name">Celtiis Cash</span>
   </div>
 </div>
-
-<div class="features">
-  <div class="feature">
-    <div class="icon">💳</div>
-    <h3>3 opérateurs simulés</h3>
-    <p>MTN Mobile Money, Moov Money et Celtiis Cash sur un même numéro fictif.</p>
+<aside class="home-preview" aria-label="Aperçu du paiement">
+  <div class="home-preview-head">
+    <span class="home-preview-brand"><span class="home-preview-mark">3D</span> Paiement marchand</span>
+    <span>APERÇU</span>
   </div>
-  <div class="feature">
-    <div class="icon">🔐</div>
-    <h3>Webhooks signés</h3>
-    <p>Signature HMAC, retry, journal des livraisons — comme un vrai agrégateur.</p>
+  <div class="home-preview-total"><small>Montant de la commande</small><strong>2 500 <small>FCFA</small></strong></div>
+  <div class="home-preview-method selected"><span class="home-preview-radio"></span><strong>MTN</strong><span>Mobile Money</span></div>
+  <div class="home-preview-method"><span class="home-preview-radio"></span><strong>MOOV</strong><span>Moov Money</span></div>
+  <div class="home-preview-method"><span class="home-preview-radio"></span><strong>CELTIIS</strong><span>Celtiis Cash</span></div>
+  <div class="home-preview-submit">Confirmer le paiement</div>
+  <div class="home-preview-foot"><span>Transaction de test</span><span>Simulation uniquement</span></div>
+</aside>
+</section>
+<section class="flow-section">
+  <div class="flow-heading">
+    <h2>Parcours d’intégration</h2>
+    <a href="/demo/numeros-de-test">Voir les numéros de test</a>
   </div>
-  <div class="feature">
-    <div class="icon">📊</div>
-    <h3>Tableau de bord</h3>
-    <p>Transactions, clés, réglages : un compte, ses données, et rien que ça.</p>
-  </div>
-</div>
-
-<div class="card">
-  <span class="eyebrow">Prêt en quelques instants</span>
-  <h2>Votre première transaction de test</h2>
   <ol class="steps">
-    <li>Créer un compte via <a href="/docs">l’API</a> (<code>POST /api/v1/auth/register</code>).</li>
-    <li>Ouvrir la <a href="/demo/boutique">boutique fictive</a> avec votre clé.</li>
-    <li>Choisir un scénario de paiement simulé.</li>
-    <li>Confirmer ou refuser dans le widget de paiement.</li>
+    <li>Créer un compte et récupérer la clé secrète.</li>
+    <li>Créer une transaction avec un scénario de test.</li>
+    <li>Confirmer ou refuser dans le widget.</li>
+    <li>Consulter le statut et les notifications.</li>
   </ol>
-  <p class="muted">Aucun paiement réel n’est effectué. Les identifiants saisis dans la boutique ne sont pas conservés.</p>
-</div>
+</section>
 """
 
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 def index() -> HTMLResponse:
     return _render("Accueil", _INDEX)
+
+
+def _journey(active: int) -> str:
+    labels = ("Compte", "Paiement", "Confirmation", "Résultat")
+    steps = []
+    for index, label in enumerate(labels, start=1):
+        state = "active" if index == active else "complete" if index < active else ""
+        number = "✓" if index < active else str(index)
+        steps.append(
+            f'<div class="journey-step {state}" aria-current="{"step" if index == active else "false"}">'
+            f'<span class="step-number">{number}</span><span>{label}</span></div>'
+        )
+    return f'<nav id="demo-journey" class="journey" aria-label="Étapes de la démonstration">{"".join(steps)}</nav>'
+
+
+_REGISTER = """
+<div class="page-intro">
+  <span class="eyebrow">Étape 1 · Votre espace marchand</span>
+  <h1>Créer votre compte</h1>
+  <p>Un compte de démonstration vous donne une clé API pour lancer votre premier paiement fictif.</p>
+</div>
+<section id="register-stage" data-auth="guest">
+  <div class="register-layout">
+    <div class="card">
+      <h2>Informations du compte</h2>
+      <p class="muted">Utilisez une adresse de démonstration. Ne réutilisez pas un mot de passe personnel.</p>
+      <form id="register-form">
+        <label for="merchant-name">Nom de la boutique</label>
+        <input id="merchant-name" name="name" minlength="2" maxlength="80" autocomplete="organization" placeholder="Ex. Boutique Ébène" required>
+        <label for="merchant-email">Adresse e-mail</label>
+        <input id="merchant-email" name="email" type="email" maxlength="120" autocomplete="email" placeholder="vous@exemple.bj" required>
+        <label for="merchant-password">Mot de passe</label>
+        <input id="merchant-password" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
+            <div class="row"><button id="register-submit" type="submit">Créer mon compte</button></div>
+      </form>
+      <p class="status" id="register-status" role="status" aria-live="polite"></p>
+      <p class="auth-switch">Déjà inscrit ? <a href="/demo/connexion">Se connecter</a></p>
+      <div id="key-result" class="key-result" hidden>
+        <span class="pill ok">Compte créé</span>
+        <h2>Votre clé secrète</h2>
+        <p class="muted">Elle ne sera affichée qu’une seule fois. Copiez-la maintenant et gardez-la privée.</p>
+        <code id="secret-key"></code>
+        <div class="key-actions">
+          <button id="copy-key" type="button" class="btn secondary">Copier la clé</button>
+          <a class="btn" href="/demo/boutique">Continuer vers le paiement</a>
+        </div>
+        <p class="auth-switch">Pour consulter votre espace, <a href="/demo/connexion">connectez-vous avec ces identifiants</a>.</p>
+        <p id="copy-status" class="muted" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+    <aside class="register-aside">
+      <span class="eyebrow">Mode simulation</span>
+      <h2>Un parcours sans argent réel</h2>
+      <p>Explorez l’intégration comme un marchand, du compte jusqu’au résultat de transaction.</p>
+      <ul class="check-list">
+        <li>Clé secrète affichée une seule fois</li>
+        <li>Transactions et numéros entièrement fictifs</li>
+        <li>Aucune donnée bancaire demandée</li>
+      </ul>
+    </aside>
+  </div>
+</section>
+<script>
+const registerForm = document.getElementById('register-form');
+const registerStatus = document.getElementById('register-status');
+const registerSubmit = document.getElementById('register-submit');
+const keyResult = document.getElementById('key-result');
+const secretKey = document.getElementById('secret-key');
+
+registerForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  registerSubmit.disabled = true;
+  registerStatus.textContent = 'Création du compte…';
+  const payload = {
+    name: document.getElementById('merchant-name').value.trim(),
+    email: document.getElementById('merchant-email').value.trim(),
+    password: document.getElementById('merchant-password').value
+  };
+  try {
+    const response = await fetch('/api/v1/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      registerStatus.textContent = 'Erreur ' + response.status + ' : '
+        + (typeof data.detail === 'string' ? data.detail : 'Vérifiez les champs saisis.');
+      return;
+    }
+    secretKey.textContent = data.secret_key;
+    keyResult.hidden = false;
+    registerForm.querySelectorAll('input, button[type="submit"]').forEach((field) => field.disabled = true);
+    registerStatus.textContent = 'Compte prêt. Copiez votre clé avant de continuer.';
+    keyResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (error) {
+    registerStatus.textContent = 'Erreur réseau : ' + error;
+  } finally {
+    registerSubmit.disabled = keyResult.hidden ? false : true;
+  }
+});
+
+document.getElementById('copy-key').addEventListener('click', async () => {
+  const copyStatus = document.getElementById('copy-status');
+  try {
+    await navigator.clipboard.writeText(secretKey.textContent);
+    copyStatus.textContent = 'Clé copiée. Collez-la dans le formulaire de paiement.';
+  } catch (error) {
+    copyStatus.textContent = 'Copie impossible dans ce navigateur. Sélectionnez la clé et copiez-la manuellement.';
+  }
+});
+</script>
+"""
+
+
+@router.get("/demo/inscription", response_class=HTMLResponse, include_in_schema=False)
+def demo_register() -> HTMLResponse:
+    return _render("Créer un compte", _journey(1) + _REGISTER)
+
+
+_LOGIN = """
+<div class="page-intro">
+  <span class="eyebrow">Espace marchand</span>
+  <h1>Se connecter</h1>
+  <p>Retrouvez vos transactions, vos notifications et les réglages de votre compte.</p>
+</div>
+<div class="auth-layout" data-auth="guest">
+  <section class="card">
+    <h2>Accéder à votre espace</h2>
+    <form id="login-form">
+      <label for="login-email">Adresse e-mail</label>
+      <input id="login-email" type="email" autocomplete="username" required>
+      <label for="login-password">Mot de passe</label>
+      <input id="login-password" type="password" autocomplete="current-password" required>
+      <div class="row"><button id="login-submit" type="submit">Se connecter</button></div>
+    </form>
+    <p id="login-status" class="status" role="status" aria-live="polite"></p>
+    <p class="auth-switch">Pas encore de compte ? <a href="/demo/inscription">Créer un compte marchand</a></p>
+  </section>
+  <aside class="auth-aside">
+    <span class="eyebrow">Votre espace</span>
+    <h2>Les opérations de votre compte, réunies au même endroit.</h2>
+    <p>Connectez-vous pour consulter l’activité et les réglages du compte marchand.</p>
+    <p class="muted">La session reste dans cet onglet et expire selon la durée configurée par le service.</p>
+  </aside>
+</div>
+<script>
+const loginForm = document.getElementById('login-form');
+const loginStatus = document.getElementById('login-status');
+const loginSubmit = document.getElementById('login-submit');
+
+loginForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  loginSubmit.disabled = true;
+  loginStatus.textContent = 'Vérification des identifiants…';
+  try {
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('login-email').value.trim(),
+        password: document.getElementById('login-password').value
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      loginStatus.textContent = 'Connexion impossible : '
+        + (typeof data.detail === 'string' ? data.detail : 'Vérifiez les identifiants saisis.');
+      return;
+    }
+    sessionStorage.setItem('3dp_session', data.access_token);
+    window.location.assign('/demo/espace');
+  } catch (error) {
+    loginStatus.textContent = 'Erreur réseau : ' + error;
+  } finally {
+    loginSubmit.disabled = false;
+  }
+});
+</script>
+"""
+
+
+@router.get("/demo/connexion", response_class=HTMLResponse, include_in_schema=False)
+def demo_login() -> HTMLResponse:
+    return _render("Se connecter", _LOGIN)
+
+
+_WORKSPACE = """
+<section id="workspace-loading" class="card">
+  <p class="status" role="status">Chargement de votre espace marchand…</p>
+</section>
+<section id="workspace-content" class="workspace" hidden>
+  <div class="workspace-heading">
+    <div>
+      <span class="eyebrow">Espace marchand</span>
+      <h1>Bonjour, <span id="merchant-name">marchand</span></h1>
+      <p id="merchant-email"></p>
+    </div>
+    <div class="workspace-actions">
+      <a class="btn" href="/demo/boutique">Nouveau paiement</a>
+      <button id="logout" data-action="logout" type="button" class="btn secondary">Se déconnecter</button>
+    </div>
+  </div>
+  <div class="workspace-summary">
+    <div class="summary-item"><small>Transactions</small><strong id="transaction-count">0</strong></div>
+    <div class="summary-item"><small>Paiements acceptés</small><strong id="success-count">0</strong></div>
+    <div class="summary-item"><small>Clé publique</small><code id="public-key" class="key-value"></code></div>
+  </div>
+  <div class="workspace-grid">
+    <section class="card">
+      <span class="eyebrow">Activité récente</span>
+      <h2>Transactions</h2>
+      <div class="table-wrap">
+        <table class="workspace-table">
+          <thead><tr><th>Référence</th><th>Opérateur</th><th>Montant</th><th>Statut</th></tr></thead>
+          <tbody id="transactions-body"></tbody>
+        </table>
+      </div>
+      <p id="transactions-empty" class="workspace-empty" hidden>Aucune transaction pour le moment.</p>
+    </section>
+    <div>
+      <section class="card">
+        <span class="eyebrow">Notifications</span>
+        <h2>Derniers webhooks</h2>
+        <div id="webhook-list" class="workspace-list"></div>
+        <p id="webhooks-empty" class="workspace-empty" hidden>Aucune notification envoyée.</p>
+      </section>
+      <section class="card">
+        <span class="eyebrow">Configuration</span>
+        <h2>URL de webhook</h2>
+        <p id="webhook-url" class="muted"></p>
+        <p><a href="/demo/boutique">Créer un paiement</a> · <a href="/docs">Documentation API</a></p>
+      </section>
+    </div>
+  </div>
+</section>
+<script>
+const sessionToken = sessionStorage.getItem('3dp_session');
+const loadingPanel = document.getElementById('workspace-loading');
+const workspace = document.getElementById('workspace-content');
+function showWorkspaceError(message) {
+  loadingPanel.replaceChildren();
+  const paragraph = document.createElement('p');
+  paragraph.className = 'workspace-error';
+  paragraph.textContent = message;
+  const link = document.createElement('a');
+  link.href = '/demo/connexion';
+  link.textContent = 'Se connecter';
+  loadingPanel.append(paragraph, link);
+}
+
+async function api(path) {
+  const response = await fetch(path, {
+    headers: { 'Authorization': 'Bearer ' + sessionToken }
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const detail = typeof data.detail === 'string' ? data.detail : 'Erreur de chargement.';
+    throw new Error(response.status + ' — ' + detail);
+  }
+  return data;
+}
+
+function appendCell(row, value) {
+  const cell = document.createElement('td');
+  cell.textContent = value;
+  row.appendChild(cell);
+}
+
+async function loadWorkspace() {
+  if (!sessionToken) {
+    showWorkspaceError('Votre session n’est pas ouverte.');
+    return;
+  }
+  try {
+    const [account, transactions, webhooks, keys, settings] = await Promise.all([
+      api('/api/v1/auth/me'),
+      api('/api/v1/dashboard/transactions'),
+      api('/api/v1/dashboard/webhooks'),
+      api('/api/v1/dashboard/keys'),
+      api('/api/v1/dashboard/settings')
+    ]);
+    document.getElementById('merchant-name').textContent = account.name;
+    document.getElementById('merchant-email').textContent = account.email;
+    document.getElementById('transaction-count').textContent = transactions.length;
+    document.getElementById('success-count').textContent =
+      transactions.filter((item) => item.status === 'SUCCEEDED').length;
+    document.getElementById('public-key').textContent = keys.public_key;
+    document.getElementById('webhook-url').textContent =
+      settings.webhook_url || 'Aucune URL configurée';
+
+    const transactionBody = document.getElementById('transactions-body');
+    transactions.slice(0, 8).forEach((item) => {
+      const row = document.createElement('tr');
+      appendCell(row, item.reference);
+      appendCell(row, item.operator.toUpperCase());
+      appendCell(row, Number(item.amount).toLocaleString('fr-FR') + ' ' + item.currency);
+      const statusCell = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = item.status === 'SUCCEEDED' ? 'pill ok'
+        : item.is_final ? 'pill bad' : 'pill warn';
+      badge.textContent = item.status;
+      statusCell.appendChild(badge);
+      row.appendChild(statusCell);
+      transactionBody.appendChild(row);
+    });
+    document.getElementById('transactions-empty').hidden = transactions.length > 0;
+
+    const webhookList = document.getElementById('webhook-list');
+    webhooks.slice(0, 5).forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'workspace-list-item';
+      const event = document.createElement('span');
+      const state = document.createElement('span');
+      event.textContent = item.event;
+      state.textContent = item.state + ' · ' + item.attempts + ' essai(s)';
+      row.append(event, state);
+      webhookList.appendChild(row);
+    });
+    document.getElementById('webhooks-empty').hidden = webhooks.length > 0;
+    loadingPanel.hidden = true;
+    workspace.hidden = false;
+  } catch (error) {
+    if (String(error.message).startsWith('401')) {
+      sessionStorage.removeItem('3dp_session');
+      window.dispatchEvent(new Event('3dp-session-ended'));
+      showWorkspaceError('Votre session a expiré. Connectez-vous à nouveau.');
+      return;
+    }
+    showWorkspaceError('Impossible de charger votre espace : ' + error.message);
+  }
+}
+
+loadWorkspace();
+</script>
+"""
+
+
+@router.get("/demo/espace", response_class=HTMLResponse, include_in_schema=False)
+def demo_workspace() -> HTMLResponse:
+    return _render("Espace marchand", _WORKSPACE)
 
 
 _BOUTIQUE = """
@@ -416,7 +985,7 @@ _BOUTIQUE = """
     </div>
     </div>
     <div class="row">
-      <button id="submit-payment" type="submit">Créer le paiement →</button>
+      <button id="submit-payment" type="submit">Créer le paiement</button>
     </div>
   </form>
   <p class="status" id="status" role="status" aria-live="polite"></p>
@@ -463,7 +1032,7 @@ form.addEventListener('submit', async (event) => {
     }
     status.textContent = 'Transaction ' + data.reference + ' créée (' + data.status + ').';
     window.location.href = '/demo/widget?reference=' + encodeURIComponent(data.reference)
-      + '&decision_token=' + encodeURIComponent(data.decision_token);
+      + '#decision_token=' + encodeURIComponent(data.decision_token);
   } catch (error) {
     status.textContent = 'Erreur réseau : ' + error;
   } finally {
@@ -476,11 +1045,12 @@ form.addEventListener('submit', async (event) => {
 
 @router.get("/demo/boutique", response_class=HTMLResponse, include_in_schema=False)
 def demo_shop() -> HTMLResponse:
-    return _render("Boutique fictive", _BOUTIQUE)
+    return _render("Boutique fictive", _journey(2) + _BOUTIQUE)
 
 
 _WIDGET = """
 <div class="widget-wrap">
+<div id="decision-stage">
 <div class="card widget-card">
   <div class="widget-top">
     <div><span class="eyebrow">Paiement sécurisé</span><h1>Confirmer le paiement</h1></div>
@@ -498,16 +1068,32 @@ _WIDGET = """
     <button id="decline" class="danger">Refuser</button>
   </div>
   <p class="status" id="status" role="status" aria-live="polite"></p>
-  <pre id="raw"></pre>
 </div>
+</div>
+<section id="result-stage" class="result-panel" hidden aria-live="polite">
+  <span id="result-badge" class="pill info">SIMULATION</span>
+  <h2 id="result-title">Résultat du paiement</h2>
+  <p id="result-message" class="muted"></p>
+  <div class="meta"><span class="k">Référence</span><span class="v" id="result-reference"></span></div>
+  <div class="meta"><span class="k">Montant</span><span class="v" id="result-amount"></span></div>
+  <div class="meta"><span class="k">Statut</span><span class="v" id="result-status"></span></div>
+  <pre id="raw"></pre>
+  <div class="result-actions">
+    <a class="btn" href="/demo/boutique">Créer un autre paiement</a>
+    <a class="btn secondary" href="/demo/numeros-de-test">Explorer les scénarios</a>
+  </div>
+</section>
 </div>
 <script>
 const params = new URLSearchParams(window.location.search);
 const reference = params.get('reference') || '';
-const token = params.get('decision_token') || '';
+const token = new URLSearchParams(window.location.hash.slice(1)).get('decision_token')
+  || params.get('decision_token') || '';
 const info = document.getElementById('info');
 const status = document.getElementById('status');
 const raw = document.getElementById('raw');
+const decisionStage = document.getElementById('decision-stage');
+const resultStage = document.getElementById('result-stage');
 
 function pill_for(status) {
   if (status === 'SUCCEEDED') return 'pill ok';
@@ -525,16 +1111,34 @@ function show(data) {
   statusBadge.textContent = data.status;
   document.getElementById('st').replaceChildren(statusBadge);
   info.textContent = data.message;
+  document.getElementById('result-reference').textContent = data.reference;
+  document.getElementById('result-amount').textContent = data.amount + ' ' + data.currency;
+  document.getElementById('result-status').textContent = data.status;
+  document.getElementById('result-message').textContent = data.message;
   raw.textContent = JSON.stringify(data, null, 2);
-  const done = data.is_final;
-  document.getElementById('confirm').disabled = done;
-  document.getElementById('decline').disabled = done;
+  const isWaiting = data.status === 'PROCESSING';
+  const resultBadge = document.getElementById('result-badge');
+  resultBadge.className = pill_for(data.status);
+  resultBadge.textContent = isWaiting ? 'RÉSULTAT EN ATTENTE' : data.status;
+  document.getElementById('result-title').textContent = isWaiting
+    ? 'Paiement en cours de traitement'
+    : data.status === 'SUCCEEDED' ? 'Paiement accepté' : 'Paiement non abouti';
+  resultStage.dataset.state = isWaiting ? 'waiting'
+    : data.status === 'SUCCEEDED' ? 'ok' : 'bad';
+  decisionStage.hidden = true;
+  resultStage.hidden = false;
+  document.querySelectorAll('#demo-journey .journey-step').forEach((step, index) => {
+    step.classList.toggle('complete', index < 3);
+    step.classList.toggle('active', index === 3);
+    step.setAttribute('aria-current', index === 3 ? 'step' : 'false');
+    if (index < 3) step.querySelector('.step-number').textContent = '✓';
+  });
 }
 
 async function decide(decision) {
-  status.textContent = 'Envoi de la décision…';
   document.getElementById('confirm').disabled = true;
   document.getElementById('decline').disabled = true;
+  status.textContent = 'Traitement de votre décision…';
   try {
     const response = await fetch('/api/v1/payments/' + encodeURIComponent(reference) + '/decision', {
       method: 'POST',
@@ -562,6 +1166,8 @@ document.getElementById('decline').addEventListener('click', () => decide('DECLI
 
 if (!reference || !token) {
   info.textContent = 'Référence ou jeton de décision manquant dans l’URL.';
+  document.getElementById('confirm').disabled = true;
+  document.getElementById('decline').disabled = true;
 } else {
   document.getElementById('ref').textContent = reference;
   info.textContent = 'Le statut est consultable par le marchand via l’API.';
@@ -572,7 +1178,7 @@ if (!reference || !token) {
 
 @router.get("/demo/widget", response_class=HTMLResponse, include_in_schema=False)
 def demo_widget() -> HTMLResponse:
-    return _render("Widget de paiement", _WIDGET)
+    return _render("Widget de paiement", _journey(3) + _WIDGET)
 
 
 _ROW = (
