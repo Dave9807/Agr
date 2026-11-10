@@ -340,6 +340,10 @@ td { border-bottom-color: var(--line); }
 .workspace-empty, .workspace-error, .workspace-notice { color: var(--muted); font-size: .88rem; }
 .workspace-error { margin-bottom: .8rem; color: #a63d44; font-weight: 650; }
 .workspace-notice:empty { display: none; }
+.webhook-form { margin-top: .9rem; }
+.webhook-form button { margin-top: .75rem; }
+.webhook-help { margin-top: .65rem; color: var(--muted); font-size: .82rem; }
+.webhook-status { min-height: 1.4rem; margin-top: .65rem; color: var(--green-dark); font-size: .85rem; }
 .nav-button { width: auto; padding: .35rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--green-dark); background: #f1f5ef; box-shadow: none; font-size: .85rem; }
 .nav-button:hover { transform: none; box-shadow: none; background: #e8f0e7; }
 .nav-feedback { flex-basis: 100%; color: #a63d44; font-size: .8rem; }
@@ -461,8 +465,6 @@ _SHELL = """<!doctype html>
     <span class="brand"><span class="logo">3D</span> 3Dpay</span><span class="badge">SIMULATION</span>
     <nav>
       <a href="/">Accueil</a>
-      <a data-auth="guest" href="/demo/inscription">Créer un compte</a>
-      <a data-auth="guest" href="/demo/connexion">Se connecter</a>
       <a data-auth="signed-in" href="/demo/espace" hidden>Espace marchand</a>
       <button data-auth="signed-in" data-action="logout" type="button" class="nav-button" hidden>Se déconnecter</button>
       <a href="/demo/boutique">Boutique</a>
@@ -806,7 +808,6 @@ _WORKSPACE = """
     </div>
     <div class="workspace-actions">
       <a class="btn" href="/demo/boutique">Nouveau paiement</a>
-      <button id="logout" data-action="logout" type="button" class="btn secondary">Se déconnecter</button>
     </div>
   </div>
   <div class="workspace-summary">
@@ -834,10 +835,16 @@ _WORKSPACE = """
         <p id="webhooks-empty" class="workspace-empty" hidden>Aucune notification envoyée.</p>
       </section>
       <section class="card">
-        <span class="eyebrow">Configuration</span>
-        <h2>URL de webhook</h2>
-        <p id="webhook-url" class="muted"></p>
-        <p><a href="/demo/boutique">Créer un paiement</a> · <a href="/docs">Documentation API</a></p>
+        <span class="eyebrow">Réglages du compte</span>
+        <h2>Notifications de paiement</h2>
+        <p class="muted">Un webhook est une notification envoyée automatiquement à votre serveur lorsqu’un paiement change d’état. C’est utile pour mettre à jour vos commandes sans vérifier les paiements manuellement.</p>
+        <form id="webhook-form" class="webhook-form">
+          <label for="webhook-url">Adresse de votre serveur</label>
+          <input id="webhook-url" name="webhook_url" type="url" maxlength="500" placeholder="https://votre-site.com/webhooks/3dpay">
+          <p class="webhook-help">Facultatif. Utilisez une URL publique en http ou https ; les adresses locales ou privées sont refusées. Laissez vide pour désactiver les notifications.</p>
+          <button id="webhook-save" type="submit">Enregistrer l’adresse</button>
+        </form>
+        <p id="webhook-status" class="webhook-status" role="status" aria-live="polite"></p>
       </section>
     </div>
   </div>
@@ -846,6 +853,10 @@ _WORKSPACE = """
 const sessionToken = sessionStorage.getItem('3dp_session');
 const loadingPanel = document.getElementById('workspace-loading');
 const workspace = document.getElementById('workspace-content');
+const webhookForm = document.getElementById('webhook-form');
+const webhookInput = document.getElementById('webhook-url');
+const webhookStatus = document.getElementById('webhook-status');
+
 function showWorkspaceError(message) {
   loadingPanel.replaceChildren();
   const paragraph = document.createElement('p');
@@ -894,8 +905,7 @@ async function loadWorkspace() {
     document.getElementById('success-count').textContent =
       transactions.filter((item) => item.status === 'SUCCEEDED').length;
     document.getElementById('public-key').textContent = keys.public_key;
-    document.getElementById('webhook-url').textContent =
-      settings.webhook_url || 'Aucune URL configurée';
+    webhookInput.value = settings.webhook_url || '';
 
     const transactionBody = document.getElementById('transactions-body');
     transactions.slice(0, 8).forEach((item) => {
@@ -940,6 +950,39 @@ async function loadWorkspace() {
 }
 
 loadWorkspace();
+
+webhookForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const saveButton = document.getElementById('webhook-save');
+  saveButton.disabled = true;
+  webhookStatus.textContent = 'Enregistrement…';
+  try {
+    const response = await fetch('/api/v1/dashboard/settings', {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer ' + sessionToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ webhook_url: webhookInput.value.trim() || null })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const detail = typeof data.detail === 'string'
+        ? data.detail
+        : 'Vérifiez que l’adresse est valide et accessible.';
+      webhookStatus.textContent = 'Enregistrement impossible : ' + detail;
+      return;
+    }
+    webhookInput.value = data.webhook_url || '';
+    webhookStatus.textContent = data.webhook_url
+      ? 'Adresse enregistrée. Les prochains événements de paiement seront envoyés à cette adresse.'
+      : 'Notifications désactivées. Aucune adresse de webhook n’est configurée.';
+  } catch (error) {
+    webhookStatus.textContent = 'Erreur réseau : impossible d’enregistrer l’adresse. ' + error;
+  } finally {
+    saveButton.disabled = false;
+  }
+});
 </script>
 """
 

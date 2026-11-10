@@ -83,10 +83,14 @@ def test_inscription_demo_utilise_le_contrat_api_et_affiche_la_cle_une_fois(clie
 
 def test_l_accueil_propose_compte_et_connexion_aux_visiteurs(client):
     home = client.get("/").text
+    navigation = home.split("<nav>", 1)[1].split("</nav>", 1)[0]
 
     assert "[hidden] { display: none !important; }" in home
+    assert 'href="/demo/inscription"' not in navigation
+    assert 'href="/demo/connexion"' not in navigation
+    landing = home.split('<section class="home-grid">', 1)[1]
+    assert 'data-auth="guest" href="/demo/connexion"' in landing
     assert 'data-auth="guest" href="/demo/inscription"' in home
-    assert 'data-auth="guest" href="/demo/connexion"' in home
     assert 'data-auth="signed-in" href="/demo/espace" hidden' in home
 
 
@@ -125,5 +129,9 @@ def test_l_espace_marchand_charge_les_donnees_de_session(client):
     assert "api('/api/v1/dashboard/webhooks')" in workspace
     assert "api('/api/v1/dashboard/keys')" in workspace
     assert "api('/api/v1/dashboard/settings')" in workspace
+    assert "method: 'PATCH'" in workspace
+    assert "JSON.stringify({ webhook_url: webhookInput.value.trim() || null })" in workspace
+    assert "Notifications désactivées." in workspace
+    assert "les adresses locales ou privées sont refusées" in workspace
     assert "sessionStorage.removeItem('3dp_session')" in workspace
     assert "innerHTML" not in workspace
